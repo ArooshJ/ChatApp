@@ -1,3 +1,5 @@
+import { use } from "react";
+
 const API_BASE_URL = "http://127.0.0.1:8000";
 
 export const API_ROUTES = {
@@ -18,4 +20,6 @@ export const API_ROUTES = {
   // CHAT_CLEAR: (chatId) => `${API_BASE_URL}/multimedia/chats/${chatId}/clear/`, // Clear all messages in a chat
   SIGNUP: `${API_BASE_URL}/chat/signup/`,
   LOGIN: `${API_BASE_URL}/api/token/`,
+
+  ROOM_LIST: (user_id) => `${API_BASE_URL}/ws/chat/${user_id}`,
 };
