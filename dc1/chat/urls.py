@@ -14,6 +14,6 @@ router.register(r'messages', MessageViewSet, basename='messages')
 # 🔹 Define URL patterns
 urlpatterns = [
     path("signup/", SignupView.as_view(), name="signup"),
-    path("history/<str:room_name>/", get_chat_history, name="chat_history"),
+    path("history/<int:room_id>/", get_chat_history, name="chat_history"),
     path("", include(router.urls)),  # Include router-generated URLs
 ]

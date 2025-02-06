@@ -11,10 +11,11 @@ class UserProfile(models.Model):
         return self.user.username
 
 class Room(models.Model):
-    name = models.CharField(max_length=255, unique=True)  
+    name = models.CharField(max_length=255, unique=True, null=True,blank=True)  
     members = models.ManyToManyField(User, related_name="rooms")  
     admin = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="admin_rooms")  
     created_at = models.DateTimeField(auto_now_add=True)  
+    is_dm = models.BooleanField(default=False)  # True if it is a DM room.
 
     def __str__(self):
         return self.name
