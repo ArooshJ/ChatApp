@@ -26,6 +26,7 @@ def get_chat_history(request, room_name):
 
 class SignupView(APIView):
     def post(self, request):
+        print('hii')
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
