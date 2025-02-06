@@ -1,70 +1,165 @@
-
 import json
+import logging
+
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import Message
 from urllib.parse import parse_qs
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+from .models import Room, Message
+
+User = get_user_model()
+logger = logging.getLogger("chat.consumer")  # configure logging in your settings
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_type = self.scope['url_route']['kwargs']['room_type']
-        self.room_identifier = self.scope['url_route']['kwargs'].get('identifier', 'global')
-
+        # Parse query parameters
         query_params = parse_qs(self.scope["query_string"].decode())
-        self.sender = query_params.get("user", [None])[0]  # Extract 'user' safely
+        logger.info("WS connect query_params: %s", query_params)
 
-        if not self.sender:
-            await self.close()  # Reject connection if no user provided
+        # Try to get the sender from scope; if not authenticated, fallback to query param "user"
+        self.user = self.scope.get("user", None)
+        if not (self.user and self.user.is_authenticated):
+            sender_username = query_params.get("user", [None])[0]
+            if not sender_username:
+                logger.error("Connection rejected: no authenticated user and no 'user' query parameter provided.")
+                await self.close()
+                return
+            self.user = await self.get_user(sender_username)
+            if not self.user:
+                logger.error("Connection rejected: sender '%s' not found in DB.", sender_username)
+                await self.close()
+                return
+
+        # Determine if this is a DM or a Group Chat.
+        receiver_username = query_params.get("receiver", [None])[0]
+        room_id = self.scope["url_route"]["kwargs"].get("room_id", None)
+
+        if room_id:
+            # GROUP CHAT MODE: get or create a group chat room using room_id (as string)
+            self.room = await self.get_or_create_group_room(room_id)
+            if not await self.user_in_room(self.user, self.room):
+                logger.error("User '%s' is not a member of group room '%s'.", self.user.username, self.room.name)
+                await self.close()
+                return
+        elif receiver_username:
+            # DM MODE: get or create a DM room based on sender and receiver.
+            self.room = await self.get_or_create_dm_room(receiver_username)
+            if not self.room:
+                logger.error("Failed to get or create DM room for receiver '%s'.", receiver_username)
+                await self.close()
+                return
+        else:
+            logger.error("Connection rejected: neither room_id nor receiver provided.")
+            await self.close()
             return
 
-        # Determine room name based on type
-        if self.room_type == 'dm':
-            users = sorted([self.sender, self.room_identifier])
-            self.room_name = f'dm_{users[0]}-{users[1]}'
-        else:
-            self.room_name = f'{self.room_type}_{self.room_identifier}'
-        
-        await self.channel_layer.group_add(
-            self.room_name,
-            self.channel_name
-        )
+        self.room_group_name = f"chat_{self.room.id}"
+        logger.info("User '%s' connecting to room '%s' (group: %s)", self.user.username, self.room.name, self.room_group_name)
+
+        # Ensure the user is added to the room
+        if not await self.user_in_room(self.user, self.room):
+            await self.add_user_to_room(self.user, self.room)
+
+        # Join the channel layer group.
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+        logger.info("WebSocket connection accepted for user '%s' in room '%s'.", self.user.username, self.room.name)
+
+    async def disconnect(self, close_code):
+        if hasattr(self, "room_group_name"):
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        logger.info("User '%s' disconnected from room '%s'.", self.user.username, self.room.name if hasattr(self, "room") else "unknown")
 
     async def receive(self, text_data):
-        data = json.loads(text_data)
-        
-        # Save message to database
-        await self.save_message(data['message'])
-        
-        # Broadcast to room group
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError as e:
+            logger.error("Invalid JSON received: %s", e)
+            return
+
+        message = data.get("message", "").strip()
+        if not message:
+            logger.info("Empty message received; ignoring.")
+            return
+
+        if not await self.user_in_room(self.user, self.room):
+            logger.error("User '%s' tried to send a message in room '%s' but is not a member.", self.user.username, self.room.name)
+            return
+
+        # Save the message in the database.
+        await self.save_message(self.room, self.user, message)
+        logger.info("Message saved: '%s' from '%s' in room '%s'.", message, self.user.username, self.room.name)
+
+        # Broadcast the message.
         await self.channel_layer.group_send(
-            self.room_name,
+            self.room_group_name,
             {
-                'type': 'chat_message',
-                'message': data['message'],
-                'sender': self.sender
+                "type": "chat_message",
+                "message": message,
+                "sender": self.user.username,
             }
         )
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
-            'sender': event['sender'],
-            'message': event['message']
+            "message": event["message"],
+            "sender": event["sender"],
         }))
 
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_name,
-            self.channel_name
-        )
+    @database_sync_to_async
+    def get_user(self, username):
+        try:
+            return User.objects.get(username=username)
+        except User.DoesNotExist:
+            return None
 
     @database_sync_to_async
-    def save_message(self, content):
-        sender_user = User.objects.get(username=self.sender)
-
-        Message.objects.create(
-            room=self.room_name,
-            sender=sender_user,
-            content=content
+    def get_or_create_group_room(self, room_id):
+        # Use room_id (as string) as the room's name.
+        room, created = Room.objects.get_or_create(
+            name=str(room_id),
+            defaults={"admin": self.user, "is_dm": False}
         )
+        if created:
+            room.members.add(self.user)
+        return room
+
+    @database_sync_to_async
+    def get_or_create_dm_room(self, receiver_username):
+        try:
+            receiver = User.objects.get(username=receiver_username)
+        except User.DoesNotExist:
+            logger.error("Receiver '%s' does not exist.", receiver_username)
+            return None
+
+        # Create a deterministic DM room name from both usernames.
+        room_name = self.generate_dm_room_name(self.user.username, receiver_username)
+        room, created = Room.objects.get_or_create(
+            name=room_name,
+            defaults={"admin": self.user, "is_dm": True}
+        )
+        if created:
+            room.members.add(self.user)
+            room.members.add(receiver)
+        else:
+            if not room.members.filter(id=self.user.id).exists():
+                room.members.add(self.user)
+            if not room.members.filter(id=receiver.id).exists():
+                room.members.add(receiver)
+        return room
+
+    def generate_dm_room_name(self, username1, username2):
+        sorted_names = sorted([username1, username2])
+        return f"dm_{sorted_names[0]}_{sorted_names[1]}"
+
+    @database_sync_to_async
+    def user_in_room(self, user, room):
+        return room.members.filter(id=user.id).exists()
+
+    @database_sync_to_async
+    def add_user_to_room(self, user, room):
+        room.members.add(user)
+
+    @database_sync_to_async
+    def save_message(self, room, user, message):
+        Message.objects.create(room=room, sender=user, content=message)
