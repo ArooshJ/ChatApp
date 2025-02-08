@@ -3,9 +3,15 @@ from .models import Message, UserProfile, Room
 from django.contrib.auth.models import User
 
 class MessageSerializer(serializers.ModelSerializer):
+    sender_name = serializers.SerializerMethodField()  # Custom field
     class Meta:
         model = Message
         fields = '__all__'
+    
+    def get_sender_name(self, obj):
+        return obj.sender.username  # or obj.sender.sender_name if `sender_name` exists
+
+
 class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room

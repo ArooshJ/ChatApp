@@ -25,14 +25,19 @@ class RoomViewSet(viewsets.ModelViewSet):
         return Response({"members": [{"id":user.id,"username":user.username} for user in members]})
 
     # ✅ Extra: Add user to a room
-    @action(detail=True, methods=["POST"])
-    def add_member(self, request, pk=None):
+    @action(detail=True, methods=["POST"], url_path="add_member")
+    def add_member_to_group(self, request, pk=None):
         room = self.get_object()
         user_id = request.data.get("user_id")
         try:
             user = User.objects.get(id=user_id)
-            room.members.add(user)
-            return Response({"message": f"{user.username} added to {room.name}"}, status=status.HTTP_200_OK)
+
+            if not room.is_dm:
+                room.members.add(user)
+                return Response({"message": f"{user.username} added to {room.name}"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "cant add user to dm group"}, status=status.HTTP_403_FORBIDDEN)
+
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     
@@ -61,9 +66,12 @@ class RoomViewSet(viewsets.ModelViewSet):
 
         if not room.members.filter(id=user.id).exists():
             return Response({"message": "You are not a member of this room."})
-        room.members.remove(user)
-        return Response({"message": f"Left room '{room.name}'."}, status=status.HTTP_200_OK)
-    
+        
+        if not room.is_dm:
+            room.members.remove(user)
+            return Response({"message": f"Left room '{room.name}'."}, status=status.HTTP_200_OK)
+        return Response({"message": "Cant leave a dm room"},status=status.HTTP_403_FORBIDDEN)
+        
     
     @action(detail=True, methods=['post'], url_path='join')
     def join(self, request, pk=None):
@@ -75,8 +83,13 @@ class RoomViewSet(viewsets.ModelViewSet):
 
         if room.members.filter(id=user.id).exists():
             return Response({"message": "Already a member of this room."})
-        room.members.add(user)
-        return Response({"message": f"Joined room '{room.name}'."}, status=status.HTTP_200_OK)
+        if not room.is_dm:
+            room.members.add(user)
+            return Response({"message": f"Joined room '{room.name}'."}, status=status.HTTP_200_OK)
+        return Response({"message": "Cant join a dm room"},status=status.HTTP_403_FORBIDDEN)
+
+        
+
 
 
 
@@ -85,12 +98,14 @@ class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
 
     # ✅ Extra: Get messages for a specific room
-    @action(detail=False, methods=["GET"])
+    @action(detail=False, methods=["GET"], url_path='room_messages')
     def room_messages(self, request):
         print('dickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdick')
         room_id = request.query_params.get("room_id")
+        print(room_id)
         try:
             messages = Message.objects.filter(room__id=room_id)
+            print(messages)
             serializer = MessageSerializer(messages, many=True)
             return Response(serializer.data)
         except Room.DoesNotExist:
