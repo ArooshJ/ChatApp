@@ -166,11 +166,13 @@ const ChatArea = ({ selectedGroup, currentUser }) => {
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        console.log("from socket = ",data);
         const formattedData = {
           content: data.message,
           timestamp: Date.now(),
           room: selectedGroup.id,
-          sender: currentUser.id, // this is stupid change it later to data.senderID
+          sender: data.sender_id, 
+          sender_name: data.sender,
         };
         setMessagesByGroup((prevMessages) => ({
           ...prevMessages,
@@ -244,7 +246,7 @@ const ChatArea = ({ selectedGroup, currentUser }) => {
                   }`}
                   //className="message-name"
                 >
-                  {"Aryan"}
+                  {msg.sender_name}
                 </div>
                 <div>
                   <div className="message-content">{msg.content}</div>

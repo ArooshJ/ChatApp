@@ -98,9 +98,9 @@
 } */
 
 .receiver {
-  align-self: flex-start;
-  background-color: #2c2c38;
-  color: #e0e0e0;
+  /* align-self: flex-start; */
+  /* background-color: #2c2c38; */
+  /* color: #e0e0e0; */
   border-bottom-left-radius: 4px;
 }
 
@@ -246,7 +246,7 @@ body {
   color: #8aee3c; 
 }
 .message-name.receiver{
-  color: #3c42ee; 
+  color: #9599f5; 
 }
 
 
