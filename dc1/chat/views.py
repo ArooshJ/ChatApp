@@ -78,9 +78,6 @@ class RoomViewSet(viewsets.ModelViewSet):
         room.members.add(user)
         return Response({"message": f"Joined room '{room.name}'."}, status=status.HTTP_200_OK)
 
-    
-
-
 
 
 class MessageViewSet(viewsets.ModelViewSet):
@@ -90,6 +87,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     # ✅ Extra: Get messages for a specific room
     @action(detail=False, methods=["GET"])
     def room_messages(self, request):
+        print('dickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdick')
         room_id = request.query_params.get("room_id")
         try:
             messages = Message.objects.filter(room__id=room_id)

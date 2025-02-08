@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities; */
 
+body {
+  height: 100%;
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+  background-color: #121212; /* Dark background for the entire page */
+  color: #e0e0e0;
+  font-family: Arial, sans-serif;
+}
+
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

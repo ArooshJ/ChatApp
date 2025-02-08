@@ -1,5 +1,5 @@
 import { API_ROUTES } from "../routes/apiRoute";
-import { getTokenFromCookie } from "../utils/get-token";
+import { getTokenFromCookie } from "../utils/getFromCookie";
 
 // Signup API call using fetch
 export const signup = async (data) => {

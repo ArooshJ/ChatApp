@@ -1,25 +1,24 @@
-import { use } from "react";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
 export const API_ROUTES = {
-  // User-related routes
-  // USERS: `${API_BASE_URL}/users/account/`, // Users listing, CRUD
-  // REGISTER: `${API_BASE_URL}/users/auth/register/`, // Register user
-  // LOGIN: `${API_BASE_URL}/users/auth/login/token`, // User login (JWT)
-  // REFRESH: `${API_BASE_URL}/users/auth/token/refresh`, // Token refresh
-  // LOGOUT: `${API_BASE_URL}/users/auth/signout/`, // User logout
-
-  // CHAT_BOT: `${API_BASE_URL}/chatbot/query/`,
-  // CHAT_LIST: `${API_BASE_URL}/multimedia/chats/`, // List all chats for the user
-  // CHAT_CREATE: `${API_BASE_URL}/multimedia/chats/create/`, // Create a new chat
-  // MESSAGE_LIST: (chatId) =>
-  //   `${API_BASE_URL}/multimedia/chats/${chatId}/messages/`, // List messages for a specific chat
-  // MESSAGE_CREATE: (chatId) =>
-  //   `${API_BASE_URL}/multimedia/chats/${chatId}/messages/create/`, // Send a message in a chat
-  // CHAT_CLEAR: (chatId) => `${API_BASE_URL}/multimedia/chats/${chatId}/clear/`, // Clear all messages in a chat
   SIGNUP: `${API_BASE_URL}/chat/signup/`,
   LOGIN: `${API_BASE_URL}/api/token/`,
 
-  ROOM_LIST: (user_id) => `${API_BASE_URL}/ws/chat/${user_id}`,
+  USER_ROOM_LIST: (data) => `${API_BASE_URL}/chat/rooms/my_rooms/`, // get all rooms the user is part of  // get method
+  AVAILABLE_ROOM_LIST: (data) => `${API_BASE_URL}/chat/rooms/available_rooms/`, // get available rooms // get
+  ALL_ROOM_LIST: (data) => `${API_BASE_URL}/chat/rooms/`, // get all rooms in the db // get method
+  MEMBER_LIST: (room_id) => `${API_BASE_URL}/chat/rooms/${room_id}/members/`, // get
+
+  ALL_MESSAGES: (data) => `${API_BASE_URL}/chat/messages/`, // get all messages
+  ROOM_MESSAGES: (room_id) => `${API_BASE_URL}/chat/history/${room_id}/`, // get room's messages
+
+  JOIN_ROOM: (room_id) => `${API_BASE_URL}/chat/rooms/${room_id}/join/`, // post method
+  LEAVE_ROOM: (room_id) => `${API_BASE_URL}/chat/rooms/${room_id}/leave/`, // post method
+  CREATE_ROOM: (data) => `${API_BASE_URL}/chat/rooms/`, // post method
+  // {
+  //   "name":"Room 5",
+  //   "members":[1,2,3,4,5]
+  //   //,"is_dm": false // can send this field
+  // }
 };
