@@ -21,14 +21,14 @@
   margin-bottom: 5px;
 }
 
-.sidebar li:hover {
+/* .sidebar li:hover {
   background-color: #e9ecef;
-}
+} */
 
-.sidebar li.selected {
+/* .sidebar li.selected {
   background-color: #007bff;
   color: white;
-}
+} */
 
 /* .chat-area {
   flex: 1;

@@ -71,3 +71,158 @@
 .sidebar::-webkit-scrollbar-thumb:hover {
   background-color: #777; /* Scrollbar thumb hover color */
 }
+
+
+
+.sidebar-header-component {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+
+.create-group-button {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #007bff; /* Blue background */
+  color: white;
+  font-size: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.create-group-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+.plus-icon {
+  line-height: 1; /* Ensures the icon is centered vertically */
+}
+
+
+
+
+
+
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal */
+.modal {
+  background-color: #4594a1;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal h3 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #000000;
+}
+
+.modal h4 {
+  margin: 10px 0;
+  font-size: 16px;
+  color: #000000;
+}
+
+/* Group Name Input */
+.group-name-input {
+  width: 94%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #080808;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #00100d;
+  background-color: #aeebe6;
+  margin-right: 100px;
+}
+
+.group-name-input::placeholder {
+  color: #999;
+}
+
+/* Modal Name List */
+.modal-name-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.modal-name-list li {
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #1c4a67;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  color: #fff;
+}
+
+.modal-name-list li.selected {
+  background-color: #011725;
+  color: white;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.modal-actions button:first-child {
+  background-color: #dc7070;
+  color: #333;
+}
+
+.modal-actions button:first-child:hover {
+  background-color: #e8a2a2;
+}
+
+.modal-actions button:last-child {
+  background-color: #28891b;
+  color: white;
+}
+
+.modal-actions button:last-child:hover {
+  background-color: #0f5c05;
+}
+
+.modal-actions button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.modal-actions button:disabled:hover {
+  background-color: #ccc;
+}
