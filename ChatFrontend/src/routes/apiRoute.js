@@ -21,4 +21,5 @@ export const API_ROUTES = {
   //   "members":[1,2,3,4,5]
   //   //,"is_dm": false // can send this field
   // }
+  ALL_USERS: (data) => `${API_BASE_URL}/chat/users/` // get method for getting all users in the db
 };

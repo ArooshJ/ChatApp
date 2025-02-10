@@ -1,43 +1,63 @@
 import React, { useState } from "react";
 import "../styles/Sidebar.css";
+import { createRoom } from "../api/chat";
 
-const Sidebar = ({ groups = [], onSelectGroup, selectedGroup }) => {
+const Sidebar = ({
+  groups = [],
+  onSelectGroup,
+  selectedGroup,
+  userList,
+  currentUser,
+  refreshRooms, // Receive the refreshRooms function as a prop
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedNames, setSelectedNames] = useState([]);
+  const [selectedUserIDs, setSelectedUserIDs] = useState([currentUser.id]);
   const [groupName, setGroupName] = useState("");
-
-  // Hardcoded list of names
-  const names = ["Alice", "Bob", "Charlie", "Diana", "Eve"];
 
   const plusIconHandler = () => {
     setIsModalOpen(true);
-  }
+  };
 
   // Toggle selection of names
-  const toggleNameSelection = (name) => {
-    if (selectedNames.includes(name)) {
-      setSelectedNames(selectedNames.filter((n) => n !== name));
+  const toggleNameSelection = (id) => {
+    if (selectedUserIDs.includes(id)) {
+      setSelectedUserIDs(selectedUserIDs.filter((n) => n !== id));
     } else {
-      setSelectedNames([...selectedNames, name]);
+      setSelectedUserIDs([...selectedUserIDs, id]);
     }
   };
 
   // Handle create new room
-  const handleCreateRoom = () => {
-    if (groupName.trim() === "" || selectedNames.length === 0) {
+  const handleCreateRoom = async () => {
+    if (groupName.trim() === "" || selectedUserIDs.length === 1) {
       alert("Please provide a group name and select at least one member.");
       return;
     }
-    console.log("Creating new room with name:", groupName, "and selected names:", selectedNames);
+
+    const body = {
+      name: groupName,
+      members: selectedUserIDs,
+    };
+
+    try {
+      const response = await createRoom(body);
+      console.log("createRoom response = ", response);
+
+      // Refresh the rooms list after creating a new room
+      await refreshRooms();
+    } catch (err) {
+      console.log(err);
+    }
+
     setIsModalOpen(false); // Close the modal
-    setSelectedNames([]); // Reset selected names
+    setSelectedUserIDs([currentUser.id]); // Reset selected names
     setGroupName(""); // Reset group name
   };
 
   // Handle cancel
   const handleCancel = () => {
     setIsModalOpen(false); // Close the modal
-    setSelectedNames([]); // Reset selected names
+    setSelectedUserIDs([currentUser.id]); // Reset selected names
     setGroupName(""); // Reset group name
   };
 
@@ -82,21 +102,29 @@ const Sidebar = ({ groups = [], onSelectGroup, selectedGroup }) => {
             />
             <h4>Select Members</h4>
             <ul className="modal-name-list">
-              {names.map((name) => (
-                <li
-                  key={name}
-                  onClick={() => toggleNameSelection(name)}
-                  className={selectedNames.includes(name) ? "selected" : ""}
-                >
-                  {name}
-                </li>
-              ))}
+              {userList.map((user) =>
+                user.id === currentUser.id ? (
+                  <></>
+                ) : (
+                  <li
+                    key={user.id}
+                    onClick={() => toggleNameSelection(user.id)}
+                    className={
+                      selectedUserIDs.includes(user.id) ? "selected" : ""
+                    }
+                  >
+                    {user.username}
+                  </li>
+                )
+              )}
             </ul>
             <div className="modal-actions">
               <button onClick={handleCancel}>Cancel</button>
               <button
                 onClick={handleCreateRoom}
-                disabled={groupName.trim() === "" || selectedNames.length === 0}
+                disabled={
+                  groupName.trim() === "" || selectedUserIDs.length === 1
+                }
               >
                 Create Room
               </button>

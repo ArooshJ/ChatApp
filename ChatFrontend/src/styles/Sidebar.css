@@ -166,7 +166,28 @@
   list-style: none;
   padding: 0;
   margin: 10px 0;
+  max-height: 300px;
+  overflow-y: auto;
 }
+/* Custom Scrollbar for WebKit browsers (Chrome, Safari, etc.) */
+.modal-name-list::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.modal-name-list::-webkit-scrollbar-track {
+  background: #2c2c38; /* Dark background for the scrollbar track */
+  border-radius: 4px;
+}
+
+.modal-name-list::-webkit-scrollbar-thumb {
+  background: #555; /* Color of the scrollbar thumb */
+  border-radius: 4px;
+}
+
+.modal-name-list::-webkit-scrollbar-thumb:hover {
+  background: #777; /* Color of the scrollbar thumb on hover */
+}
+
 
 .modal-name-list li {
   padding: 10px;

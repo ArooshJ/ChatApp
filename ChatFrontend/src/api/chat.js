@@ -99,3 +99,7 @@ export const leaveRoom = async (room_id) =>
 // ✅ Create a new room
 export const createRoom = async (roomData, urlData) =>
   fetchAPI(API_ROUTES.CREATE_ROOM(urlData), "POST", roomData);
+
+// ✅ Create a new room
+export const allUsers = async (urlData) =>
+  fetchAPI(API_ROUTES.ALL_USERS(urlData));
