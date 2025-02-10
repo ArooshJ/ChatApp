@@ -3,12 +3,12 @@
   height: 100vh;
 }
 
-.sidebar {
+/* .sidebar {
   width: 200px;
   background-color: #f8f9fa;
   padding: 20px;
   border-right: 1px solid #dee2e6;
-}
+} */
 
 .sidebar ul {
   list-style-type: none;
@@ -21,21 +21,21 @@
   margin-bottom: 5px;
 }
 
-.sidebar li:hover {
+/* .sidebar li:hover {
   background-color: #e9ecef;
-}
+} */
 
-.sidebar li.selected {
+/* .sidebar li.selected {
   background-color: #007bff;
   color: white;
-}
+} */
 
-.chat-area {
+/* .chat-area {
   flex: 1;
   padding: 20px;
   display: flex;
   flex-direction: column;
-}
+} */
 
 .chat-messages {
   flex: 1;

@@ -1,16 +1,31 @@
-import React, { useState } from 'react';
-import Sidebar from '../components/Sidebar';
-import ChatArea from '../components/ChatArea';
-import '../styles/HomePage.css';
+import React, { useState, useEffect } from "react";
+import Sidebar from "../components/Sidebar";
+import ChatArea from "../components/ChatArea";
+import "../styles/HomePage.css";
+import { userRoomList } from "../api/chat";
+import { getUserFromCookie } from "../utils/getFromCookie";
 
 const HomePage = () => {
-  const [groups, setGroups] = useState([
-    { id: '1', name: 'Group 1' },
-    { id: '2', name: 'Group 2' },
-    { id: '3', name: 'Group 3' },
-  ]);
+  const user = getUserFromCookie();
+  //console.log("user = ",user);
+
+  const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [currentUser] = useState({ id: '1', name: 'John Doe' }); // This should be set after authentication
+  const [currentUser, setCurrentUser] = useState(user); // This should be set after authentication
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const result = await userRoomList();
+        console.log("room_list result = ", result);
+        setGroups(result); 
+      } catch (err) {
+        console.log("Error fetching room_list:", err);
+      }
+    };
+
+    fetchRooms();
+  }, [currentUser]); 
 
   return (
     <div className="home-page">
@@ -25,3 +40,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+

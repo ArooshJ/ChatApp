@@ -92,6 +92,7 @@ export const AuthProvider = ({ children }) => {
   const saveSession = (sessionData) => {
     setCookie("access_token", sessionData.access);
     setCookie("refresh_token", sessionData.refresh);
+    setCookie("user", sessionData.user); // contains id, username, email
     setIsAuthenticated(true); // Set auth state
   };
 
@@ -100,6 +101,7 @@ export const AuthProvider = ({ children }) => {
     try {
       deleteCookie("access_token");
       deleteCookie("refresh_token");
+      deleteCookie("user");
       
       setIsAuthenticated(false); // Update auth state
       

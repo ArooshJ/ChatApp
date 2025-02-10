@@ -108,6 +108,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     # ✅ Extra: Get messages for a specific room
     @action(detail=False, methods=["GET"], url_path='room_messages')
     def room_messages(self, request):
+        print('dickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdickdick')
         room_id = request.query_params.get("room_id")
         print(room_id)
         try:
@@ -123,6 +124,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
 class SignupView(APIView):
     def post(self, request):
+        print('hii')
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
