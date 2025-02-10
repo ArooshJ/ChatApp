@@ -2,15 +2,23 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from django.contrib.auth.models import User
 from .models import Message, Room, UserProfile
-from .serializers import MessageSerializer, RoomSerializer, UserProfileSerializer, SignupSerializer
+from .serializers import MessageSerializer, RoomSerializer, UserProfileSerializer, SignupSerializer, UserSerializer
 
 
 # 🔹 Basic CRUD ViewSets
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
+
+
+class UserListView(ListAPIView):
+    queryset = User.objects.all().values('id', 'username', 'email')  # Optimized query
+    serializer_class = UserSerializer
+
+
 
 
 class RoomViewSet(viewsets.ModelViewSet):
