@@ -9,6 +9,10 @@ const Sidebar = ({ groups = [], onSelectGroup, selectedGroup }) => {
   // Hardcoded list of names
   const names = ["Alice", "Bob", "Charlie", "Diana", "Eve"];
 
+  const plusIconHandler = () => {
+    setIsModalOpen(true);
+  }
+
   // Toggle selection of names
   const toggleNameSelection = (name) => {
     if (selectedNames.includes(name)) {
@@ -41,7 +45,7 @@ const Sidebar = ({ groups = [], onSelectGroup, selectedGroup }) => {
     <div className="sidebar">
       <div className="sidebar-header-component">
         <h3>Groups</h3>
-        <div className="create-group-button" onClick={() => setIsModalOpen(true)}>
+        <div className="create-group-button" onClick={plusIconHandler}>
           <span className="plus-icon">+</span>
         </div>
       </div>
