@@ -71,7 +71,13 @@ const HomePage = () => {
         currentUser={currentUser}
         refreshRooms={refreshRooms} // Pass the refreshRooms function
       />
-      <ChatArea selectedGroup={selectedGroup} currentUser={currentUser} />
+      <ChatArea
+        selectedGroup={selectedGroup}
+        currentUser={currentUser}
+        refreshRooms={refreshRooms}
+        groups={groups}
+        setSelectedGroup={setSelectedGroup}
+      />
     </div>
   );
 };

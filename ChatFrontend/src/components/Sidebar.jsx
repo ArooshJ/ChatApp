@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "../styles/Sidebar.css";
 import { createRoom } from "../api/chat";
+import {getGroupName} from "../utils/getGroupName";
 
 const Sidebar = ({
   groups = [],
@@ -80,7 +81,7 @@ const Sidebar = ({
                 selectedGroup && selectedGroup.id === group.id ? "selected" : ""
               }
             >
-              {group.name}
+              {getGroupName(group, currentUser)}
             </li>
           ))
         ) : (

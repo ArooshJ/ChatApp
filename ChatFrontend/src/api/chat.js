@@ -1,38 +1,3 @@
-// import { API_ROUTES } from "../routes/apiRoute";
-// import { getTokenFromCookie } from "../utils/get-token";
-
-// // Get user room list API call
-// export const user_room_list = async (data) => {
-//   try {
-//     const token = getTokenFromCookie();
-//     if (!token) throw new Error("Token not found");
-
-//     const response = await fetch(API_ROUTES.USER_ROOM_LIST, {
-//       method: "GET",
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//         "Content-Type": "application/json",
-//       },
-//     });
-
-//     // Check if the response status is not OK
-//     if (!response.ok) {
-//       // Extract error information and throw an error
-//       const errorData = await response.json();
-//       console.log(errorData);
-//       throw { response: { data: errorData } };
-//     }
-
-//     // Parse the JSON response
-//     const res = await response.json();
-//     console.log(res);
-
-//     return res;
-//   } catch (error) {
-//     throw error;
-//   }
-// };
-
 import { API_ROUTES } from "../routes/apiRoute";
 import { getTokenFromCookie } from "../utils/getFromCookie";
 

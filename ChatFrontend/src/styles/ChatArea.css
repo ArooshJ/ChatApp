@@ -128,6 +128,10 @@
   outline: none;
 }
 
+.chatbot-detected {
+  color: #13f4c0 !important;
+}
+
 .message-form input::placeholder {
   color: #b0b0b0;
 }
