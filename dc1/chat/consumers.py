@@ -5,7 +5,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from urllib.parse import parse_qs
 from django.contrib.auth import get_user_model
-from .models import Room, Message
+from chat.models import Room, Message
 
 User = get_user_model()
 logger = logging.getLogger("chat.consumer")  # configure logging in your settings

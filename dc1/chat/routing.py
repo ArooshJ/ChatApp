@@ -11,5 +11,4 @@ from . import consumers
 
 websocket_urlpatterns = [
    re_path(r'ws/chat/(?P<room_id>\d+)/$', consumers.ChatConsumer.as_asgi()),  # Group And dm chats, same route.
-
 ]
