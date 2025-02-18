@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from django.contrib.auth.models import User
-from .models import Message, Room, UserProfile
-from .serializers import MessageSerializer, RoomSerializer, UserProfileSerializer, SignupSerializer, UserSerializer
+from chat.models import Message, Room, UserProfile
+from chat.serializers import MessageSerializer, RoomSerializer, UserProfileSerializer, SignupSerializer, UserSerializer
 
 
 # 🔹 Basic CRUD ViewSets

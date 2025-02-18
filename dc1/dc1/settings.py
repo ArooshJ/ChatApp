@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-^a&#_4fp6n1cwb)%9qb(@+%_&3scf^07sg!f384n*t#ss@j44$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*'] # Blank By default, '* to allow all hosts
 
 
 # Application definition
@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     "corsheaders",# installed
     'rest_framework',# installed
     "chat", # own app
-    
+   
 
 ]
 
@@ -194,6 +194,7 @@ CHANNEL_LAYERS = {
         # },
     }
 }
+
 # For production, use Redis:
 # CHANNEL_LAYERS = {
 #     "default": {
