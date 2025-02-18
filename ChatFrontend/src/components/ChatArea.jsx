@@ -5,6 +5,7 @@ import { FaInfoCircle } from "react-icons/fa";
 import { createRoom } from "../api/chat";
 import { getGroupName } from "../utils/getGroupName";
 import { generate } from "../api/llm";
+import { SOCKET_BASE_URL } from "../routes/apiRoute";
 
 const ChatArea = ({
   selectedGroup,
@@ -44,7 +45,7 @@ const ChatArea = ({
 
   useEffect(() => {
     if (selectedGroup) {
-      const wsUrl = `ws://127.0.0.1:8000/ws/chat/${selectedGroup.id}/?user=${currentUser.username}`;
+      const wsUrl = `${SOCKET_BASE_URL}/ws/chat/${selectedGroup.id}/?user=${currentUser.username}`;
 
       const ws = new WebSocket(wsUrl);
 

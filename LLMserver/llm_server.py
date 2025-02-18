@@ -15,6 +15,8 @@ Keep your responses under 2-3 sentences. Be natural, conversational, and avoid s
 For prompts where the user wants to send a message (e.g., greeting someone, apologizing, or making a request), write the message directly from the user's perspective in first person. 
 Do not provide explanations or suggestions—just write the message as if you are the user.
 Do not return the response in double quotes.
+You should also be able to understand when the user expects to use you for improving the language and grammer of the text and convey the message.
+You SHOULD NOT directly Reply to the user at all times.
 """
 
 @app.route('/generate', methods=['POST', 'OPTIONS'], strict_slashes=False)

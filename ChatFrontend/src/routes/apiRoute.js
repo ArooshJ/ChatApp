@@ -1,5 +1,8 @@
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+//const API_BASE_URL = "http://127.0.0.1:8000";
+//export const SOCKET_BASE_URL = "ws://127.0.0.1:8000";
+const API_BASE_URL = "http://10.10.41.102:8000";
+export const SOCKET_BASE_URL = "ws://10.10.41.102:8000";
 
 export const API_ROUTES = {
   SIGNUP: `${API_BASE_URL}/chat/signup/`,
