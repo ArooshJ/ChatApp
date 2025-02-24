@@ -85,13 +85,23 @@ WSGI_APPLICATION = "dc1.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'chatapp',  # Change to your actual database name
+        'USER': 'lanuser',    # Change to your MySQL user
+        'PASSWORD': 'password',  # Change to your MySQL password
+        'HOST': '192.168.1.9',  # IP of the MySQL host machine
+        'PORT': '3306',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
