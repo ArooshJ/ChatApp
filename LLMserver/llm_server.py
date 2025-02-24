@@ -5,7 +5,7 @@ import subprocess
 frontendURL = "http://localhost:5173"
 
 app = Flask(__name__)
-CORS(app, origins=[frontendURL], allow_headers=["Authorization", "Content-Type"]) # Enable CORS for all routes
+CORS(app, origins=[frontendURL, '*'], allow_headers=["Authorization", "Content-Type"]) # Enable CORS for all routes
 
 # System prompt to guide the model's behavior
 SYSTEM_PROMPT = """
