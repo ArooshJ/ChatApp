@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Django + Channels + Redis
+  django:
+    build: ./django_app
+    command: >
+      sh -c "python manage.py migrate &&
+             uvicorn dc1.asgi:application --host 0.0.0.0 --port 8000"
+    volumes:
+      - ./django_app:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - app_network
+
+  # Redis for Channels
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+
+  # Flask LLM Service
+  flask_llm:
+    build: ./flask_llm
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    networks:
+      - app_network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./django_app/static:/static  # Static files
+    depends_on:
+      - django
+      - flask_llm
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
