@@ -1,54 +1,58 @@
 version: '3.8'
 
 services:
-  # Django + Channels + Redis
-  django:
-    build: ./django_app
-    command: >
-      sh -c "python manage.py migrate &&
-             uvicorn dc1.asgi:application --host 0.0.0.0 --port 8000"
-    volumes:
-      - ./django_app:/app
-    env_file:
-      - .env
+  backend:
+    build: ./dc1  # Path to Django Dockerfile
+    container_name: backend
+    restart: always
     depends_on:
+      - db
       - redis
+    env_file:
+      - .env  # Store secrets here
+    ports:
+      - "8000:8000"
     networks:
       - app_network
 
-  # Redis for Channels
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass  # Change this!
+      MYSQL_DATABASE: chatdb
+      MYSQL_USER: chatuser
+      MYSQL_PASSWORD: chatpass  # Change this!
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+
   redis:
     image: redis:alpine
+    container_name: redis_cache
+    restart: always
     ports:
       - "6379:6379"
     networks:
       - app_network
 
-  # Flask LLM Service
-  flask_llm:
-    build: ./flask_llm
-    ports:
-      - "5000:5000"
-    env_file:
-      - .env
-    networks:
-      - app_network
-
-  # Nginx Reverse Proxy
   nginx:
-    image: nginx:alpine
+    build: ./nginx  # Path to Nginx Dockerfile
+    container_name: nginx
+    restart: always
+    depends_on:
+      - backend
     ports:
       - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./django_app/static:/static  # Static files
-    depends_on:
-      - django
-      - flask_llm
     networks:
       - app_network
 
 networks:
   app_network:
-    driver: bridge
+
+volumes:
+  mysql_data:

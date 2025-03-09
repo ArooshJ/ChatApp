@@ -15,6 +15,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Parse query parameters
         query_params = parse_qs(self.scope["query_string"].decode())
         logger.info("WS connect query_params: %s", query_params)
+        # print("connected")
 
         # Try to get the sender from scope; if not authenticated, fallback to query param "user"
         self.user = self.scope.get("user", None)
@@ -22,11 +23,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender_username = query_params.get("user", [None])[0]
             if not sender_username:
                 logger.error("Connection rejected: no authenticated user and no 'user' query parameter provided.")
+                # print("Connection rejected: no authenticated user and no 'user' query parameter provided.")
                 await self.close()
                 return
             self.user = await self.get_user(sender_username)
             if not self.user:
                 logger.error("Connection rejected: sender '%s' not found in DB.", sender_username)
+                # print("Connection rejected: sender '%s' not found in DB.", sender_username)
                 await self.close()
                 return
 
@@ -42,48 +45,64 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 return
         else:
             logger.error("Connection rejected: room_id not provided.")
+            # print("Connection rejected: room_id not provided.")
+
             await self.close()
             return
 
         # Assigining Channel room group name
         self.room_group_name = f"chat_{self.room.id}"
         logger.info("User '%s' connecting to room '%s' (group: %s)", self.user.username, self.room.name, self.room_group_name)
+        # print("User '%s' connecting to room '%s' (group: %s)", self.user.username, self.room.name, self.room_group_name)
+
 
         # Ensure the user is added to the room
         if not await self.user_in_room(self.user, self.room):
             # await self.add_user_to_room(self.user, self.room)
-            logger.error("Connection rejected: You are not a member of the room.")
+            # print("Connection rejected: You are not a member of the room.")
             await self.close()
             return
 
         # Join the channel layer group,  Group add basically adds a user (channel of the user) to the group, and not create a new group. It creates a new group auto if a group name doesnt exist
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
-        logger.info("WebSocket connection accepted for user '%s' in room '%s'.", self.user.username, self.room.name)
+        # print("WebSocket connection accepted for user '%s' in room '%s'.", self.user.username, self.room.name)
 
     async def disconnect(self, close_code):
+        # print(f"Calling Disconnect!! ")
         if hasattr(self, "room_group_name"):
+            # print(f"disconnected {self.channel_name} {self.user.username}, {self.room_group_name}")
             await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+           
         logger.info("User '%s' disconnected from room '%s'.", self.user.username, self.room.name if hasattr(self, "room") else "unknown")
 
     async def receive(self, text_data):
+        # print(f"recieve called")
         # Text data can be text data, but here is expected as json
         try:
             data = json.loads(text_data)
+            # print(f"recieved data {data}")
         except json.JSONDecodeError as e:
             logger.error("Invalid JSON received: %s", e)
+            # print("Invalid JSON received: %s", e)
+
             return
         
         # extract message string from json
         message = data.get("message", "").strip()
-        print(message)
+        # print(message)
+
         if not message:
             logger.info("Empty message received; ignoring.")
+            # print("Empty message received; ignoring.")
+
             return
         
         # Check if sender is in the room.
         if not await self.user_in_room(self.user, self.room):
             logger.error("User '%s' tried to send a message in room '%s' but is not a member.", self.user.username, self.room.name)
+            # print("User '%s' tried to send a message in room '%s' but is not a member.", self.user.username, self.room.name)
+
             return
 
         # Save the message in the database.
@@ -104,11 +123,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # Used to handle
     async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            "message": event["message"],
-            "sender": event["sender"],
-            "sender_id":event["sender_id"],
-        }))
+        try:
+            await self.send(text_data=json.dumps({
+                "message": event["message"],
+                "sender": event["sender"],
+                "sender_id":event["sender_id"],
+            }))
+        except Exception as e:
+            logger.error("Error sending message to WebSocket: %s", e)
+            # # print("Error sending message to WebSocket: %s", e)
+            await self.close()
+            
 
     @database_sync_to_async
     def get_user(self, username):
@@ -119,42 +144,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_room(self, room_id):
         try:
-            return Room.objects.get(id=room_id)
+            # # print(f"Getting Room")
+            room =  Room.objects.get(id=room_id)
+            # # print(f"Got room")
+            return room
+            
         except Room.DoesNotExist:
             return None
 
-   
-    # @database_sync_to_async
-    # def get_or_create_dm_room(self, receiver_username):
-    #     try:
-    #         receiver = User.objects.get(username=receiver_username)
-    #     except User.DoesNotExist:
-    #         logger.error("Receiver '%s' does not exist.", receiver_username)
-    #         return None
-
-    #     # Create a deterministic DM room name from both usernames.
-    #     room_name = self.generate_dm_room_name(self.user.username, receiver_username)
-    #     room, created = Room.objects.get_or_create(
-    #         name=room_name,
-    #         defaults={"admin": self.user, "is_dm": True}
-    #     )
-    #     if created:
-    #         room.members.add(self.user)
-    #         room.members.add(receiver)
-    #     else:
-    #         if not room.members.filter(id=self.user.id).exists():
-    #             room.members.add(self.user)
-    #         if not room.members.filter(id=receiver.id).exists():
-    #             room.members.add(receiver)
-    #     return room
-
-    # def generate_dm_room_name(self, username1, username2):
-    #     sorted_names = sorted([username1, username2])
-    #     return f"dm_{sorted_names[0]}_{sorted_names[1]}"
 
     @database_sync_to_async
     def user_in_room(self, user, room):
-        return room.members.filter(id=user.id).exists()
+        # # print(f"user in room?")
+
+        r = room.members.filter(id=user.id).exists()
+        # print(f"got r")
+        return r
 
     # @database_sync_to_async
     # def add_user_to_room(self, user, room):
