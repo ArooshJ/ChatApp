@@ -29,7 +29,8 @@ RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /app/logs && chmod -R 777 /app/logs
+    # Removed by Gemini --> 
+# RUN mkdir -p /app/logs && chmod -R 777 /app/logs
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
@@ -43,6 +44,8 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
+   # Create the logs directory and set ownership for the appuser. # BY GEMINI
+# RUN mkdir -p /app/logs && chown appuser:appuser /app/logs # Also removed by gemini
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
@@ -53,12 +56,18 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install -r requirements.txt
 
 # Switch to the non-privileged user to run the application.
-USER appuser
+# USER appuser # #Removed by Gemini
 
 # Copy the source code into the container.
 COPY . .
 
+# Added by gemini
+RUN mkdir -p /app/logs && chown -R appuser:appuser /app/logs \
+    && chmod -R 755 /app/logs
 # Expose the port that the application listens on.
+
+USER appuser 
+
 EXPOSE 8000
 
 # Run the application.
