@@ -6,9 +6,17 @@ from channels.db import database_sync_to_async
 from urllib.parse import parse_qs
 from django.contrib.auth import get_user_model
 from chat.models import Room, Message
+# Add this import for Celery tasks
+from celery import shared_task
+# Add this import to call async channel layer methods from a sync task
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer # Addednby gemini
+from .tasks import process_chat_message
+
 
 User = get_user_model()
 logger = logging.getLogger("chat.consumer")  # configure logging in your settings
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -104,22 +112,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # print("User '%s' tried to send a message in room '%s' but is not a member.", self.user.username, self.room.name)
 
             return
-
-        # Save the message in the database.
-        await self.save_message(self.room, self.user, message)
-        logger.info("Message saved: '%s' from '%s' in room '%s'.", message, self.user.username, self.room.name)
-
-        # Broadcast the message to the group.
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                "type": "chat_message", # THis is handled by chat_message function, basically an event is sent to the group which is handled by chat message func
-                "message": message,
-                "sender": self.user.username,
-                "sender_id":self.user.id
         
-            }
-        )
+        # Offloading this task to celery -> 
+        # # Save the message in the database.
+        # await self.save_message(self.room, self.user, message)
+        # logger.info("Message saved: '%s' from '%s' in room '%s'.", message, self.user.username, self.room.name)
+
+        # # Broadcast the message to the group.
+        # await self.channel_layer.group_send(
+        #     self.room_group_name,
+        #     {
+        #         "type": "chat_message", # THis is handled by chat_message function, basically an event is sent to the group which is handled by chat message func
+        #         "message": message,
+        #         "sender": self.user.username,
+        #         "sender_id":self.user.id
+        
+        #     }
+        # )
+        process_chat_message.delay(str(self.room.id), self.user.username, message)
+        logger.info("Message sent to queue: '%s' from '%s' in room '%s'.", message, self.user.username, self.room.name)
+
 
     # Used to handle
     async def chat_message(self, event):

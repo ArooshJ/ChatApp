@@ -275,6 +275,38 @@ CSRF_COOKIE_SECURE = True  # Send CSRF cookie only over HTTPS
 CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1", "http://localhost"]
 
 
+# ... (content above, including CHANNEL_LAYERS) ...
+
+# Celery Configuration
+# See: https://docs.celeryq.dev/en/stable/userguide/configuration.html
+
+# CELERY_BROKER_URL: The URL for the message broker.
+# We use Redis, and 'redis' is the service name in docker-compose.
+# 'redis://redis:6379/0' specifies Redis on the 'redis' host, port 6379, database 0.
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_BROKER_TRANSPORT = 'redis'
+# CELERY_RESULT_BACKEND: The URL for storing task results. Optional, but useful.
+# Using a different database index (e.g., /1) is common to separate results from broker messages.
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis_cache:6379/1")
+
+# CELERY_ACCEPT_CONTENT: List of content types that may be accepted.
+# JSON is recommended as it's interoperable.
+CELERY_ACCEPT_CONTENT = ["json"]
+
+# CELERY_TASK_SERIALIZER: How task messages are serialized.
+# JSON is recommended.
+CELERY_TASK_SERIALIZER = "json"
+
+# CELERY_RESULT_SERIALIZER: How task results are serialized.
+# JSON is recommended.
+CELERY_RESULT_SERIALIZER = "json"
+
+# CELERY_TIMEZONE: Set the timezone for Celery.
+# It's best practice to match Django's TIME_ZONE.
+CELERY_TIMEZONE = TIME_ZONE
+
+# ... (any content below, like LOGGING) ...
+
 # # For logging errors in consumer
 
 LOGS_DIR = "/app/logs"
