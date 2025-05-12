@@ -3,15 +3,15 @@ version: '3.8'
 services:
   backend:
     build: ./dc1  # Path to Django Dockerfile
-    container_name: backend
+    # container_name: backend # needs to be removed for container scaling
     restart: always
     depends_on:
       - db
       - redis
     env_file:
       - .env  # Store secrets here
-    ports:
-      - "8000:8000"
+    # ports: # to be removed dor scaling
+    #   - "8000:8000"
     networks:
       - app_network
 
