@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./dc1  # Path to Django Dockerfile
+    # container_name: backend # needs to be removed for container scaling
+    restart: always
+    depends_on:
+      - db
+      - redis
+    # TEMPORARY COMMAND FOR DEBUGGING: Run pip freeze, print Celery config, and then the original command
+    command: sh -c "pip freeze; python -c 'from django.conf import settings; from celery import current_app; print(\"CELERY_BROKER_URL:\", settings.CELERY_BROKER_URL); print(\"CELERY_BROKER_TRANSPORT:\", settings.CELERY_BROKER_TRANSPORT); print(\"Celery App Broker URL:\", current_app.conf.broker_url); print(\"Celery App Broker Transport:\", current_app.conf.broker_transport)'; /app/start.sh"
+    # Or your alternative original command if you used that
+    env_file:
+      - .env  # Store secrets here
+    # ports: # to be removed dor scaling
+    #   - "8000:8000"
+    networks:
+      - app_network
+
+  celery_worker: # <-- ADD THIS NEW SERVICE BLOCK (GEMINI)
+    build: ./dc1 # Use the same Dockerfile as the backend, as it contains your code and dependencies
+    # image: chatapp-backend # Alternatively, if you prefer to use the built image directly
+    restart: always
+    depends_on:
+      - redis # The worker needs the Redis broker to be available
+      - db # The worker needs the database to save messages
+    env_file:
+      - .env # Ensure the worker has access to necessary environment variables (like database credentials)
+    networks:
+      - app_network # Connect the worker to the same network as other services
+    # command: celery -A dc1 worker -l info # <-- The command to run the Celery worker
+    command: python -m celery -A dc1 worker -l info
+    # command: celery -A dc1 worker -l info -P eventlet # Use this if you have async tasks or need better concurrency
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass  # Change this!
+      MYSQL_DATABASE: chatdb
+      MYSQL_USER: chatuser
+      MYSQL_PASSWORD: chatpass  # Change this!
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+
+  nginx:
+    build: ./nginx  # Path to Nginx Dockerfile
+    container_name: nginx
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - app_network
+
+networks:
+  app_network:
+
+volumes:
+  mysql_data:

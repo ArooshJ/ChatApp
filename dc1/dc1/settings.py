@@ -12,11 +12,15 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
+from urllib.parse import urlparse
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+load_dotenv()
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -24,9 +28,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-^a&#_4fp6n1cwb)%9qb(@+%_&3scf^07sg!f384n*t#ss@j44$"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False # false for prod, trye for dev
+APPEND_SLASH = False
 
-ALLOWED_HOSTS = ['*'] # Blank By default, '* to allow all hosts
+# ALLOWED_HOSTS = ['*'] # Blank By default, '* to allow all hosts
+ALLOWED_HOSTS = [
+    "backend",  # For Docker Compose (Nginx calling Django)
+  #  "yourdomain.com",  # Replace with your production domain
+    "your-render-subdomain.onrender.com",
+    "localhost",
+    "127.0.0.1",
+    "nginx",
+]
+
 
 
 # Application definition
@@ -85,6 +99,7 @@ WSGI_APPLICATION = "dc1.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# THE OG SQLITE
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.sqlite3",
@@ -92,16 +107,47 @@ WSGI_APPLICATION = "dc1.wsgi.application"
 #     }
 # }
 
+# local mysql database, that can be accessed by other device on same network
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'chatapp',  # Change to your actual database name
+#         'USER': 'lanuser',    # Change to your MySQL user
+#         'PASSWORD': 'password',  # Change to your MySQL password
+#         'HOST': '192.168.1.9',  # IP of the MySQL host machine
+#         'PORT': '3306',
+#     }
+# }
+
+# Docker Compose Database
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'chatapp',  # Change to your actual database name
-        'USER': 'lanuser',    # Change to your MySQL user
-        'PASSWORD': 'password',  # Change to your MySQL password
-        'HOST': '192.168.1.9',  # IP of the MySQL host machine
-        'PORT': '3306',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("MYSQL_DATABASE", "chatdb"),
+        "USER": os.getenv("MYSQL_USER", "chatuser"),
+        "PASSWORD": os.getenv("MYSQL_PASSWORD", "chatpass"),
+        "HOST": os.getenv("MYSQL_HOST", "db"),  # Matches MySQL container name in `docker-compose.yml`
+        "PORT": os.getenv("MYSQL_PORT", "3306"),
     }
 }
+
+
+# # Neon DB database --> Latency Issues
+# tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': tmpPostgres.path.replace('/', ''),
+#         # 'NAME': tmpPostgres.path.decode('utf-8').replace('/', ''),
+#         'USER': tmpPostgres.username,
+#         'PASSWORD': tmpPostgres.password,
+#         'HOST': tmpPostgres.hostname,
+#         'PORT': 5432,
+#     }
+# }
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -137,7 +183,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # Where `collectstatic` places files
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")  # Media uploads
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -196,22 +248,111 @@ SIMPLE_JWT = {
 }
 
 # Channel layers (for development, use in-memory)
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-        # "CONFIG": {
-        #     "hosts": [("127.0.0.1", 6379)],
-        # },
-    }
-}
-
-# For production, use Redis:
 # CHANNEL_LAYERS = {
 #     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": [("redis://localhost:6379")],
-#         },
-#     },
+#         "BACKEND": "channels.layers.InMemoryChannelLayer",
+#         # "CONFIG": {
+#         #     "hosts": [("127.0.0.1", 6379)],
+#         # },
+#     }
 # }
 
+# For production (o)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)], # Redis container name in docker-compose.yml
+        },
+    },
+}
+
+# Recommended by GPT For Prodcution
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = False  # Redirect HTTP to HTTPS
+SESSION_COOKIE_SECURE = True  # Send cookies only over HTTPS
+CSRF_COOKIE_SECURE = True  # Send CSRF cookie only over HTTPS
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1", "http://localhost"]
+
+
+# ... (content above, including CHANNEL_LAYERS) ...
+
+# Celery Configuration
+# See: https://docs.celeryq.dev/en/stable/userguide/configuration.html
+
+# CELERY_BROKER_URL: The URL for the message broker.
+# We use Redis, and 'redis' is the service name in docker-compose.
+# 'redis://redis:6379/0' specifies Redis on the 'redis' host, port 6379, database 0.
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_BROKER_TRANSPORT = 'redis'
+# CELERY_RESULT_BACKEND: The URL for storing task results. Optional, but useful.
+# Using a different database index (e.g., /1) is common to separate results from broker messages.
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis_cache:6379/1")
+
+# CELERY_ACCEPT_CONTENT: List of content types that may be accepted.
+# JSON is recommended as it's interoperable.
+CELERY_ACCEPT_CONTENT = ["json"]
+
+# CELERY_TASK_SERIALIZER: How task messages are serialized.
+# JSON is recommended.
+CELERY_TASK_SERIALIZER = "json"
+
+# CELERY_RESULT_SERIALIZER: How task results are serialized.
+# JSON is recommended.
+CELERY_RESULT_SERIALIZER = "json"
+
+# CELERY_TIMEZONE: Set the timezone for Celery.
+# It's best practice to match Django's TIME_ZONE.
+CELERY_TIMEZONE = TIME_ZONE
+
+# ... (any content below, like LOGGING) ...
+
+# # For logging errors in consumer
+
+LOGS_DIR = "/app/logs"
+os.makedirs(LOGS_DIR, exist_ok=True)
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            # "filename": os.path.join(BASE_DIR, "chat_debug.log"),  # Logs to file
+            "filename": "/app/logs/chat_debug.log",
+            "formatter": "verbose",
+        },
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+        "chat.consumer": {  # Logger for ChatConsumer
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "channels": {  # Logger for Django Channels
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}

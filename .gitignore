@@ -1,2 +1,5 @@
 db.sqlite3
 .sh
+*.env
+__pycache__/
+node_modules/
