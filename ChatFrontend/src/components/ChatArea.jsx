@@ -171,7 +171,7 @@ const ChatArea = ({
         <>
           <div className="chat-header">
             <div className="group-info">
-              <img src="https://via.placeholder.com/40" alt="Group Profile" />
+              <img src="https://cdn3.iconfinder.com/data/icons/communication-social-media-1/24/account_profile_user_contact_person_avatar_placeholder-1024.png" alt="Group Profile" />
               <h2>{getGroupName(selectedGroup, currentUser)}</h2>
             </div>
             <FaInfoCircle className="info-icon" onClick={toggleMembersList} />
