@@ -1,4 +1,4 @@
-# Real-time Chat Application
+#ChatApp - Real-time Chat Application
 
 This is a real-time chat application built using a modern Python/Django stack, featuring asynchronous task processing with Celery and real-time communication via Django Channels, all orchestrated with Docker Compose. The frontend is built with React JS.
 
