@@ -141,10 +141,3 @@ This chosen architecture provides several significant advantages for building a 
 
 This architecture provides a robust, scalable, and maintainable foundation for a real-time application, demonstrating best practices in modern distributed system design.
 
-## Contributing
-
-(Add information here on how others can contribute to your project, if applicable)
-
-## License
-
-(Add license information here)
