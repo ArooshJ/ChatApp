@@ -33,9 +33,10 @@ APPEND_SLASH = False
 
 # ALLOWED_HOSTS = ['*'] # Blank By default, '* to allow all hosts
 ALLOWED_HOSTS = [
+    '*',
     "backend",  # For Docker Compose (Nginx calling Django)
   #  "yourdomain.com",  # Replace with your production domain
-    "your-render-subdomain.onrender.com",
+    # "your-render-subdomain.onrender.com",
     "localhost",
     "127.0.0.1",
     "nginx",
